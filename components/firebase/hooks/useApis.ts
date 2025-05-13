@@ -19,7 +19,16 @@ export const getDocument = async (collection: string, docId: string) => {
   const docSnap = await getDoc(docRef);
 
   if (docSnap.exists()) {
-    return docSnap.data();
+    const data = docSnap.data();
+    let downloadURL = "";
+
+    try {
+      downloadURL = await getDownloadURL(ref(storage, `images/${data.title}`));
+    } catch (error) {
+      console.warn(`Could not fetch image for post "${data.title}":`, error);
+    }
+
+    return { id: docId, ...data, downloadURL };
   } else {
     throw new Error("No such document!");
   }

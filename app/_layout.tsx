@@ -10,17 +10,19 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Text } from "react-native";
 
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
   let colorScheme = useColorScheme();
 
+  
   return (
     <PaperProvider>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <QueryClientProvider client={queryClient}>
-          <StatusBar backgroundColor="blue" style="dark" />
+          <StatusBar style="dark" />
           <SafeAreaView style={{ flex: 1 }}>
             <Stack>
               <Stack.Screen
@@ -37,8 +39,24 @@ export default function RootLayout() {
                   ),
                 }}
               />
+              <Stack.Screen
+                name="[id]"
+                options={{
+                  headerShown: true,
+                  headerTitle: "Back",
+                  headerBackTitle: "Back",
+                  headerRight: () => (
+                    <Text
+                      style={{ fontSize: 16, fontWeight: "bold" }}
+                      className="text-blue-500"
+                    >
+                      Trendecho
+                    </Text>
+                  ),
+                }}
+              />
             </Stack>
-          </SafeAreaView>{" "}
+          </SafeAreaView>
         </QueryClientProvider>
       </ThemeProvider>
     </PaperProvider>

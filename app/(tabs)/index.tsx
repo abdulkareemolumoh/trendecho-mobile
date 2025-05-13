@@ -3,6 +3,7 @@ import { Button, ScrollView, View, ActivityIndicator } from "react-native";
 import { Avatar, Card, IconButton, Text } from "react-native-paper";
 import { useGetLatestPosts } from "@/components/firebase/hooks/usePosts";
 import { getPaginatedPosts } from "@/components/firebase/hooks/useApis";
+import { Link } from "expo-router";
 
 export default function Index() {
   const { data: Latest } = useGetLatestPosts("posts");
@@ -12,7 +13,7 @@ export default function Index() {
   const [loading, setLoading] = useState(false);
   const [endReached, setEndReached] = useState(false);
 
-  const pageSize = 3;
+  const pageSize = 4;
 
   const fetchInitialPosts = async () => {
     setLoading(true);
@@ -45,48 +46,50 @@ export default function Index() {
   }, []);
 
   return (
-    <ScrollView className="p-4">
+    <ScrollView className="p-4" contentContainerStyle={{ paddingBottom: 24 }}>
       {Latest && (
-        <Card>
-          <Card.Content className="gap-2">
-            <Card.Cover source={{ uri: Latest.downloadURL }} />
-            <Text variant="titleLarge">{Latest.title}</Text>
-          </Card.Content>
-        </Card>
+        <Link href={`/${Latest.id}`} asChild>
+          <Card className="">
+            <Card.Content className="gap-2">
+              <Card.Cover source={{ uri: Latest.downloadURL }} />
+              <Text variant="titleLarge">{Latest.title}</Text>
+            </Card.Content>
+          </Card>
+        </Link>
       )}
       <View className="pt-8">
         <Text variant="titleMedium">Latest News</Text>
         {posts.map((post) => (
-          <Card key={post.id} className="mb-4">
-            <Card.Title
-              title={
-                post.title.length > 30
-                  ? post.title.substring(0, 30) + "..."
-                  : post.title
-              }
-              subtitle={post.postedBy}
-              left={(props) => (
-                <Avatar.Image
-                  {...props}
-                  source={{ uri: post.downloadURL }}
-                  size={48}
-                />
-              )}
-              right={(props) => (
-                <IconButton
-                  {...props}
-                  icon="dots-vertical"
-                  onPress={() => {}}
-                />
-              )}
-            />
-            {/* Optional: Show post image larger below */}
-            {/* <Card.Cover source={{ uri: post.downloadURL }} /> */}
-          </Card>
+          <Link href={`/${post.id}`} key={post.id} asChild>
+            <Card className="mb-4">
+              <Card.Title
+                title={
+                  post.title.length > 30
+                    ? post.title.substring(0, 30) + "..."
+                    : post.title
+                }
+                subtitle={post.postedBy}
+                left={(props) => (
+                  <Avatar.Image
+                    {...props}
+                    source={{ uri: post.downloadURL }}
+                    size={48}
+                  />
+                )}
+                right={(props) => (
+                  <IconButton
+                    {...props}
+                    icon="dots-vertical"
+                    onPress={() => {}}
+                  />
+                )}
+              />
+            </Card>
+          </Link>
         ))}
 
         {!endReached && (
-          <View className="mt-4">
+          <View className="mb-4 mx-auto w-fit rounded-lg ">
             {loading ? (
               <ActivityIndicator color="#000" />
             ) : (
@@ -96,7 +99,7 @@ export default function Index() {
         )}
 
         {endReached && posts.length > 0 && (
-          <Text className="text-center mt-4">No more posts</Text>
+          <Text className="text-center my-8 mx-auto w-fit">No more posts</Text>
         )}
       </View>
     </ScrollView>

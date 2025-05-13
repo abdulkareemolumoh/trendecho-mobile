@@ -3,7 +3,7 @@ import { getDocument, getLatestDocument, getPaginatedPosts } from "./useApis";
 import { DocumentData, QueryDocumentSnapshot } from "firebase/firestore";
 
 export const useGetPosts = (collection: string, docId: string) => {
-  return useQuery({
+  return useQuery<any>({
     queryKey: ["post", collection, docId],
     queryFn: () => getDocument(collection, docId),
   });
