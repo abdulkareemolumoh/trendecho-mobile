@@ -1,3 +1,4 @@
+import { AntDesign } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 
 const TabsLayout = () => {
@@ -5,7 +6,12 @@ const TabsLayout = () => {
     <Tabs>
       <Tabs.Screen
         name="index"
-        options={{ title: "Home", headerShown: false }}
+        options={{
+          title: "Home",
+          headerShown: false,
+          tabBarIcon: () => <AntDesign name="home" size={24} color="white" />,
+          tabBarLabel: "",
+        }}
       />
       <Tabs.Screen name="trends" options={{ title: "Trends" }} />
       <Tabs.Screen name="profile" options={{ title: "Profile" }} />
