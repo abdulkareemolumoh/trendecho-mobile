@@ -8,7 +8,8 @@ import {
   Image,
   Linking,
   Share,
-  Alert,
+  SafeAreaView,
+  RefreshControl,
 } from "react-native";
 import {
   Text,
@@ -21,7 +22,8 @@ import {
 } from "react-native-paper";
 import { AntDesign, Ionicons } from "@expo/vector-icons";
 import HTMLView from "react-native-htmlview";
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
+import Toast from "react-native-toast-message";
 
 // Utility Components
 const LoadingState = () => (
@@ -122,7 +124,15 @@ const NewsContent = () => {
     error,
   } = useGetPosts("posts", id as string);
   const { width } = useWindowDimensions();
-  // console.log("id", id);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 2000);
+  }, []);
+
   const { headerImage, htmlContent, htmlStyles } = useMemo(() => {
     if (!post) return { headerImage: null, htmlContent: "", htmlStyles: {} };
     const { processedHtml } = processHTMLContent(post.content);
@@ -165,23 +175,24 @@ const NewsContent = () => {
     };
   }, [post, width]);
 
+  const showToast = (message: string) => {
+    Toast.show({
+      type: "success",
+      text1: message,
+      position: "bottom",
+      visibilityTime: 2000,
+    });
+  };
   const onShare = async () => {
     try {
       const result = await Share.share({
-        message:
-          "React Native | A framework for building native apps using React",
+        message: `${post.title}\n\nRead more on our app.`,
       });
       if (result.action === Share.sharedAction) {
-        if (result.activityType) {
-          // shared with activity type of result.activityType
-        } else {
-          // shared
-        }
-      } else if (result.action === Share.dismissedAction) {
-        // dismissed
+        showToast("Thanks for sharing!");
       }
-    } catch (error: any) {
-      Alert.alert(error.message);
+    } catch {
+      showToast("Failed to share");
     }
   };
   if (isPending) return <LoadingState />;
@@ -189,88 +200,92 @@ const NewsContent = () => {
     return <ErrorState message={error?.message || "An error occurred"} />;
 
   return (
-    <ScrollView
-      className="flex-1 bg-zinc-900"
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: 24 }}
-    >
-      <Button onPress={onShare} className="bg-blue-500 mb-4 mx-4">
-        <Ionicons name="share-outline" size={24} color="#fff" />
-        Share
-      </Button>
-      {headerImage && (
-        <Card className="mb-4 mx-0 overflow-hidden" elevation={3}>
-          <Card.Cover
-            source={{ uri: headerImage }}
-            className="h-60"
-            resizeMode="cover"
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#111827" }}>
+      <ScrollView
+        className="flex-1 bg-zinc-900"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 24 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
+        <Button onPress={onShare} className="bg-blue-500 mb-4 mx-4 ">
+          <AntDesign name="sharealt" size={20} />
+        </Button>
+        {headerImage && (
+          <Card className="mb-4 mx-0 overflow-hidden" elevation={3}>
+            <Card.Cover
+              source={{ uri: headerImage }}
+              className="h-60"
+              resizeMode="cover"
+            />
+          </Card>
+        )}
+        <View className="px-4 py-2">
+          <ArticleHeader
+            title={post.title}
+            postedBy={post.postedBy}
+            createdAt={post.createdAt}
+            category={post.category}
           />
-        </Card>
-      )}
-      <View className="px-4 py-2">
-        <ArticleHeader
-          title={post.title}
-          postedBy={post.postedBy}
-          createdAt={post.createdAt}
-          category={post.category}
-        />
-        <Divider className="my-4 bg-gray-700" />
-        <HTMLView
-          value={htmlContent}
-          stylesheet={htmlStyles}
-          addLineBreaks={false}
-          renderNode={(node, index, siblings, parent, defaultRenderer) => {
-            if (node.name === "img") {
-              const { src, alt } = node.attribs;
-              return (
-                <View key={index} className="my-4">
-                  <Image
-                    source={{ uri: src }}
-                    style={{
-                      width: width - 32,
-                      height: 200,
-                      resizeMode: "cover",
-                      borderRadius: 8,
-                      backgroundColor: "#1f2937",
-                    }}
-                    accessibilityLabel={alt || "Article image"}
-                  />
-                  {alt && (
-                    <Text className="text-sm text-gray-400 mt-1 text-center">
-                      {alt}
-                    </Text>
-                  )}
-                </View>
-              );
-            }
-            if (node.name === "blockquote") {
-              return (
-                <View
-                  key={index}
-                  className="border-l-4 border-purple-600 pl-4 my-4 bg-zinc-800 p-3 rounded-md"
-                >
-                  {defaultRenderer(node.children, parent)}
-                </View>
-              );
-            }
-            if (node.name === "h2" || node.name === "h3") {
-              return (
-                <Text
-                  key={index}
-                  className={`text-xl font-bold text-white my-4`}
-                >
-                  {defaultRenderer(node.children, parent)}
-                </Text>
-              );
-            }
-            if (node.name === "iframe") {
-              const { src } = node.attribs;
-              return src ? <VideoPlayer key={index} src={src} /> : null;
-            }
-          }}
-        />
-      </View>
-    </ScrollView>
+          <Divider className="my-4 bg-gray-700" />
+          <HTMLView
+            value={htmlContent}
+            stylesheet={htmlStyles}
+            addLineBreaks={false}
+            renderNode={(node, index, siblings, parent, defaultRenderer) => {
+              if (node.name === "img") {
+                const { src, alt } = node.attribs;
+                return (
+                  <View key={index} className="my-4">
+                    <Image
+                      source={{ uri: src }}
+                      style={{
+                        width: width - 32,
+                        height: 200,
+                        resizeMode: "cover",
+                        borderRadius: 8,
+                        backgroundColor: "#1f2937",
+                      }}
+                      accessibilityLabel={alt || "Article image"}
+                    />
+                    {alt && (
+                      <Text className="text-sm text-gray-400 mt-1 text-center">
+                        {alt}
+                      </Text>
+                    )}
+                  </View>
+                );
+              }
+              if (node.name === "blockquote") {
+                return (
+                  <View
+                    key={index}
+                    className="border-l-4 border-purple-600 pl-4 my-4 bg-zinc-800 p-3 rounded-md"
+                  >
+                    {defaultRenderer(node.children, parent)}
+                  </View>
+                );
+              }
+              if (node.name === "h2" || node.name === "h3") {
+                return (
+                  <Text
+                    key={index}
+                    className={`text-xl font-bold text-white my-4`}
+                  >
+                    {defaultRenderer(node.children, parent)}
+                  </Text>
+                );
+              }
+              if (node.name === "iframe") {
+                const { src } = node.attribs;
+                return src ? <VideoPlayer key={index} src={src} /> : null;
+              }
+            }}
+          />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 

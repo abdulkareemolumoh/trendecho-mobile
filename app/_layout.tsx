@@ -10,14 +10,12 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Text } from "react-native";
 
 const queryClient = new QueryClient();
 
 export default function RootLayout() {
   let colorScheme = useColorScheme();
 
-  
   return (
     <PaperProvider>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
@@ -44,15 +42,6 @@ export default function RootLayout() {
                 options={{
                   headerShown: true,
                   headerTitle: "Back",
-                  headerBackTitle: "Back",
-                  headerRight: () => (
-                    <Text
-                      style={{ fontSize: 16, fontWeight: "bold" }}
-                      className="text-blue-500"
-                    >
-                      Trendecho
-                    </Text>
-                  ),
                 }}
               />
             </Stack>
