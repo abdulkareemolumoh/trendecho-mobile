@@ -1,31 +1,37 @@
 import { useQuery } from "@tanstack/react-query";
-import { getDocument, getLatestDocument, getPaginatedPosts } from "./useApis";
-import { DocumentData, QueryDocumentSnapshot } from "firebase/firestore";
+import { getLatestPosts, getPaginatedPosts, getPostsById } from "./useApis";
 
-export const useGetPosts = (collection: string, docId: string) => {
+export type Post = {
+  id: string;
+  title: string;
+  description: string;
+  content: string;
+  category: string;
+  downloadURL: string | null;
+  postedBy: string;
+  createdAt: {
+    date: string;
+    time: string;
+    timestamp: string; // or Date if you're converting it to JS Date
+  };
+};
+
+export const useGetPaginatedPosts = () => {
   return useQuery<any>({
-    queryKey: ["post", collection, docId],
-    queryFn: () => getDocument(collection, docId),
+    queryKey: ["posts"],
+    queryFn: () => getPaginatedPosts(),
+  });
+};
+export const useGetLatestPosts = () => {
+  return useQuery<any>({
+    queryKey: ["latestPosts"],
+    queryFn: () => getLatestPosts(),
   });
 };
 
-export const useGetLatestPosts = (
-  collectionName: string,
-  limitCount?: number,
-  category?: string
-) => {
+export const useGetPostsById = (id: string) => {
   return useQuery<any>({
-    queryKey: ["latestPost", collectionName],
-    queryFn: () => getLatestDocument(collectionName, limitCount, category),
-  });
-};
-
-export const useGetPaginatedPosts = (
-  pageSize: number,
-  startAfterDoc?: QueryDocumentSnapshot<DocumentData>
-) => {
-  return useQuery({
-    queryKey: ["posts", startAfterDoc?.id || "first"],
-    queryFn: () => getPaginatedPosts(pageSize, startAfterDoc),
+    queryKey: ["posts", id],
+    queryFn: () => getPostsById(id),
   });
 };

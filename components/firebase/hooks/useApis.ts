@@ -1,107 +1,112 @@
 import {
   collection,
-  doc,
-  DocumentData,
-  getDoc,
-  getDocs,
-  limit,
-  orderBy,
   query,
-  QueryDocumentSnapshot,
+  limit,
   startAfter,
+  getDocs,
   where,
+  orderBy,
+  getDoc,
+  doc,
 } from "firebase/firestore";
+import { ref, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../config";
-import { getDownloadURL, ref } from "firebase/storage";
-
-// Function to get a document from Firestore
-export const getDocument = async (collection: string, docId: string) => {
-  const docRef = doc(db, collection, docId);
-  const docSnap = await getDoc(docRef);
-
-  if (docSnap.exists()) {
-    const data = docSnap.data();
-    let downloadURL = "";
-
-    try {
-      downloadURL = await getDownloadURL(ref(storage, `images/${data.title}`));
-    } catch (error) {
-      console.warn(`Could not fetch image for post "${data.title}":`, error);
-    }
-
-    return { id: docId, ...data, downloadURL };
-  } else {
-    throw new Error("No such document!");
-  }
-};
-
-export const getLatestDocument = async (
-  collectionName: string,
-  limitCount: number = 1,
-  category?: string,
-) => {
-  const baseCollection = collection(db, collectionName);
-
-  const constraints = [];
-
-  if (category) {
-    constraints.push(where("category", "==", category));
-  }
-
-  constraints.push(orderBy("createdAt", "desc")); // keep consistent ordering
-  constraints.push(limit(limitCount));
-
-  const q = query(baseCollection, ...constraints);
-
-  const querySnapshot = await getDocs(q);
-  if (querySnapshot.empty) return null;
-
-  const doc = querySnapshot.docs[0];
-
-  const downloadURL = await getDownloadURL(
-    ref(storage, `images/${doc.data().title}`)
-  );
-
-  return { id: doc.id, ...doc.data(), downloadURL };
-};
+import { Post } from "./usePosts";
 
 export const getPaginatedPosts = async (
-  pageSize: number,
-  startAfterDoc?: QueryDocumentSnapshot<DocumentData>
+  pageSize = 2,
+  lastVisibleDoc = null
 ) => {
-  const constraints = [orderBy("createdAt", "desc"), limit(pageSize)];
+  try {
+    const postsQuery = lastVisibleDoc
+      ? query(
+          collection(db, "posts"),
+          startAfter(lastVisibleDoc),
+          limit(pageSize)
+        )
+      : query(collection(db, "posts"), limit(pageSize));
 
-  const postQuery = startAfterDoc
-    ? query(collection(db, "posts"), ...constraints, startAfter(startAfterDoc))
-    : query(collection(db, "posts"), ...constraints);
+    const documentSnapshots = await getDocs(postsQuery);
 
-  const documentSnapshots = await getDocs(postQuery);
+    if (documentSnapshots.empty) {
+      return { posts: [], lastVisible: null, hasMore: false };
+    }
 
-  if (documentSnapshots.empty) return null;
+    const lastVisible =
+      documentSnapshots.docs[documentSnapshots.docs.length - 1];
 
-  const lastVisible = documentSnapshots.docs[documentSnapshots.docs.length - 1];
+    const postsPromises = documentSnapshots.docs.map(async (doc) => {
+      const post = { id: doc.id, ...doc.data() } as Post;
 
-  // Map over docs and fetch downloadURL for each
-  const posts = await Promise.all(
-    documentSnapshots.docs.map(async (doc) => {
-      const data = doc.data();
-      let downloadURL = "";
+      try {
+        const downloadURL = await getDownloadURL(
+          ref(storage, `images/${post.title}`)
+        );
+        return { ...post, downloadURL };
+      } catch (error) {
+        console.warn(`Image not found for post: ${post.title}`, error);
+        return { ...post, downloadURL: null };
+      }
+    });
 
+    const posts = await Promise.all(postsPromises);
+
+    return {
+      posts,
+      lastVisible,
+      hasMore: posts.length === pageSize,
+    };
+  } catch (error) {
+    console.error("Error fetching paginated posts:", error);
+    throw error;
+  }
+};
+
+export const getLatestPosts = async () => {
+  const q = query(
+    collection(db, "posts"),
+    orderBy("createdAt", "desc"),
+    limit(1)
+  );
+  const querySnapshot = await getDocs(q);
+  const posts: Post[] = [];
+  querySnapshot.forEach((doc) => {
+    const post = { id: doc.id, ...doc.data() } as Post;
+    posts.push(post);
+  });
+  const downloadURL = await getDownloadURL(
+    ref(storage, `images/${posts[0].title}`)
+  );
+  return { ...posts[0], downloadURL };
+};
+
+export const getPostsById = async (id: string): Promise<Post | null> => {
+  try {
+    const docRef = doc(db, "posts", id);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) return null;
+
+    const data = docSnap.data();
+
+    let downloadURL = "";
+    if (data?.title) {
       try {
         downloadURL = await getDownloadURL(
           ref(storage, `images/${data.title}`)
         );
-      } catch (error) {
-        console.warn(`Could not fetch image for post "${data.title}":`, error);
+      } catch (imageError) {
+        console.error(`Failed to fetch image for post ${id}:`, imageError);
       }
+    }
 
-      return {
-        id: doc.id,
-        ...data,
-        downloadURL,
-      };
-    })
-  );
-
-  return { posts, lastVisible };
+    return {
+      id: docSnap.id,
+      ...(data as Omit<Post, "id" | "downloadURL">),
+      downloadURL,
+    };
+  } catch (error) {
+    console.error(`Error fetching post ${id}:`, error);
+    return null;
+  }
 };

@@ -1,24 +1,19 @@
-import React, { useState, useCallback } from "react";
-import { ScrollView, RefreshControl, TouchableOpacity } from "react-native";
+import React, { useCallback, useState } from "react";
+import { RefreshControl, ScrollView, TouchableOpacity } from "react-native";
 import { Card, Text } from "react-native-paper";
 import { Link } from "expo-router";
-import { useGetLatestPosts } from "@/components/firebase/hooks/usePosts";
-import { getPaginatedPosts } from "@/components/firebase/hooks/useApis";
 import Posts from "@/components/shared/posts";
+import { useGetLatestPosts } from "@/components/firebase/hooks/usePosts";
 
 export default function Index() {
-  const { data: latest } = useGetLatestPosts("posts");
-
   const [refreshing, setRefreshing] = useState(false);
-
-  const pageSize = 4;
+  const { data: latest, refetch } = useGetLatestPosts();
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await getPaginatedPosts(pageSize);
+    await refetch();
     setRefreshing(false);
-  }, []);
-
+  }, [refetch]);
   return (
     <ScrollView
       className="px-4"
@@ -27,17 +22,16 @@ export default function Index() {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     >
-      {/* Hero Section */}
       {latest && (
-        <Link href={`/${latest.id}`} asChild>
+        <Link href={`/${latest?.id}`} asChild>
           <TouchableOpacity activeOpacity={0.9}>
             <Card
               style={{ borderRadius: 12, overflow: "hidden", marginBottom: 20 }}
             >
-              <Card.Cover source={{ uri: latest.downloadURL }} />
+              <Card.Cover source={{ uri: latest?.downloadURL }} />
               <Card.Content>
                 <Text variant="titleLarge" className="mt-2 font-semibold">
-                  {latest.title}
+                  {latest?.title}
                 </Text>
               </Card.Content>
             </Card>

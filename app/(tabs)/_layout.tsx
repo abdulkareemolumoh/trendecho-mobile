@@ -35,8 +35,6 @@ const TabsLayout = () => {
           tabBarLabel: "",
         }}
       />
-      {/* <Tabs.Screen name="notifications" options={{ title: "Notifications" }} /> */}
-      {/* <Tabs.Screen name="messages" options={{ title: "Messages" }} /> */}
     </Tabs>
   );
 };

@@ -1,4 +1,3 @@
-import { useGetPosts } from "@/components/firebase/hooks/usePosts";
 import { useLocalSearchParams } from "expo-router";
 import {
   ScrollView,
@@ -24,6 +23,7 @@ import { AntDesign, Ionicons } from "@expo/vector-icons";
 import HTMLView from "react-native-htmlview";
 import { useCallback, useMemo, useState } from "react";
 import Toast from "react-native-toast-message";
+import { useGetPostsById } from "@/components/firebase/hooks/usePosts";
 
 // Utility Components
 const LoadingState = () => (
@@ -122,7 +122,7 @@ const NewsContent = () => {
     isPending,
     isError,
     error,
-  } = useGetPosts("posts", id as string);
+  } = useGetPostsById(id as string);
   const { width } = useWindowDimensions();
   const [refreshing, setRefreshing] = useState(false);
 
