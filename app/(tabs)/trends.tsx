@@ -1,4 +1,6 @@
-import { FlatList, Text, View } from "react-native";
+import Category from "@/components/shared/category";
+import Posts from "@/components/shared/posts";
+import { ScrollView, Text, View } from "react-native";
 
 const DATA = [
   "General",
@@ -28,15 +30,16 @@ const Item = ({ title }: ItemProps) => (
 );
 const Trends = () => {
   return (
-    <View>
-      <Text className="text-red-500">Trends</Text>
-      <FlatList
-        data={DATA}
-        renderItem={({ item }) => <Item title={item} />}
-        keyExtractor={(item) => item}
-        numColumns={5}
-      />
-    </View>
+    <ScrollView>
+      <Text className="text-red-500 mb-4">Trends</Text>
+      <View className="flex-row flex-wrap">
+        {DATA.map((item) => (
+          <Item key={item} title={item} />
+        ))}
+      </View>
+      <Category/>
+      <Posts />
+    </ScrollView>
   );
 };
 

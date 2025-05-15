@@ -9,10 +9,14 @@ export const useGetPosts = (collection: string, docId: string) => {
   });
 };
 
-export const useGetLatestPosts = (collectionName: string) => {
+export const useGetLatestPosts = (
+  collectionName: string,
+  limitCount?: number,
+  category?: string
+) => {
   return useQuery<any>({
     queryKey: ["latestPost", collectionName],
-    queryFn: () => getLatestDocument(collectionName),
+    queryFn: () => getLatestDocument(collectionName, limitCount, category),
   });
 };
 

@@ -9,6 +9,7 @@ import {
   query,
   QueryDocumentSnapshot,
   startAfter,
+  where,
 } from "firebase/firestore";
 import { db, storage } from "../config";
 import { getDownloadURL, ref } from "firebase/storage";
@@ -34,12 +35,23 @@ export const getDocument = async (collection: string, docId: string) => {
   }
 };
 
-export const getLatestDocument = async (collectionName: string) => {
-  const q = query(
-    collection(db, collectionName),
-    orderBy("createdAt", "desc"),
-    limit(1)
-  );
+export const getLatestDocument = async (
+  collectionName: string,
+  limitCount: number = 1,
+  category?: string,
+) => {
+  const baseCollection = collection(db, collectionName);
+
+  const constraints = [];
+
+  if (category) {
+    constraints.push(where("category", "==", category));
+  }
+
+  constraints.push(orderBy("createdAt", "desc")); // keep consistent ordering
+  constraints.push(limit(limitCount));
+
+  const q = query(baseCollection, ...constraints);
 
   const querySnapshot = await getDocs(q);
   if (querySnapshot.empty) return null;
