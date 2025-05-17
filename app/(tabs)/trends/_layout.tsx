@@ -1,6 +1,6 @@
-import { AntDesign, Feather } from "@expo/vector-icons";
-import { Link, Stack, useLocalSearchParams } from "expo-router";
-import { ScrollView, Text, View } from "react-native";
+import { Link, Stack } from "expo-router";
+import { Pressable, View } from "react-native";
+import { Text } from "react-native-paper";
 
 const DATA = [
   "General",
@@ -24,30 +24,44 @@ const DATA = [
 type ItemProps = { title: string };
 
 const Item = ({ title }: ItemProps) => (
-  <View>
-    <Text className="text-white p-2 bg-gray-500 m-2 rounded-lg">{title}</Text>
+  <View className="p-2 bg-blue-500 rounded-lg ">
+    <Text className="text-white">{title}</Text>
   </View>
 );
-const TrendsLayout = () => {
+const TrendLayout = () => {
   return (
-    <View className="flex-1 bg-gray-900">
-      <ScrollView
-      // horizontal
-      // showsHorizontalScrollIndicator={false}
-      // className="bg-black"
+    <>
+      <View className="flex-row  flex-wrap gap-2 px-2 py-8 ">
+        {DATA.map((item) => (
+          <Link href={`/trends/${item}`} key={item} asChild>
+            <Pressable>
+              <Item title={item} />
+            </Pressable>
+          </Link>
+        ))}
+      </View>
+      <Stack
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: "#f4511e",
+          },
+          headerTintColor: "#fff",
+          headerTitleStyle: {
+            fontWeight: "bold",
+          },
+        }}
       >
-        <View className="flex-row flex-wrap p-2">
-          {DATA.map((item) => (
-            <Link href={`/(tabs)/trends/${item}`} key={item}>
-              <Item key={item} title={item} />
-            </Link>
-          ))}
-        </View>
-      </ScrollView>
-      {/* Routes inside the Trends layout */}
-      <Stack></Stack>
-    </View>
+        <Stack.Screen
+          name="index"
+          options={{ title: "index", headerShown: false }}
+        />
+        <Stack.Screen
+          name="[category]"
+          options={{ title: "category", headerShown: false }}
+        />
+      </Stack>
+    </>
   );
 };
 
-export default TrendsLayout;
+export default TrendLayout;

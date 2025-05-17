@@ -23,6 +23,7 @@ const TabsLayout = () => {
             <Feather name="trending-up" size={24} color="white" />
           ),
           tabBarLabel: "",
+          headerShown: false,
         }}
       />
       <Tabs.Screen

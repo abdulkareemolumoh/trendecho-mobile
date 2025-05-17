@@ -4,10 +4,10 @@ import {
   limit,
   startAfter,
   getDocs,
-  where,
   orderBy,
   getDoc,
   doc,
+  where,
 } from "firebase/firestore";
 import { ref, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../config";
@@ -15,7 +15,8 @@ import { Post } from "./usePosts";
 
 export const getPaginatedPosts = async (
   pageSize = 2,
-  lastVisibleDoc = null
+  lastVisibleDoc = null,
+  category?: string
 ) => {
   try {
     const postsQuery = lastVisibleDoc
@@ -23,6 +24,19 @@ export const getPaginatedPosts = async (
           collection(db, "posts"),
           startAfter(lastVisibleDoc),
           limit(pageSize)
+        )
+      : category && lastVisibleDoc
+      ? query(
+          collection(db, "posts"),
+          startAfter(lastVisibleDoc),
+          limit(pageSize),
+          where("category", "==", category)
+        )
+      : category
+      ? query(
+          collection(db, "posts"),
+          limit(pageSize),
+          where("category", "==", category)
         )
       : query(collection(db, "posts"), limit(pageSize));
 

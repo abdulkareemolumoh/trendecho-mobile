@@ -1,13 +1,12 @@
-import Category from "@/app/(tabs)/trends/[category]";
-import { ScrollView, Text } from "react-native";
+import { View } from "react-native";
+import Category from "./[category]";
 
-const Index = () => {
+const TrendsLayout = () => {
   return (
-    <ScrollView>
-      <Text className="text-red-500 mb-4">Trends</Text>
+    <View className="flex-1 ">
       <Category />
-    </ScrollView>
+    </View>
   );
 };
 
-export default Index;
+export default TrendsLayout;
