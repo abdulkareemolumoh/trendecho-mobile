@@ -14,7 +14,7 @@ import { db, storage } from "../config";
 import { Post } from "./usePosts";
 
 export const getPaginatedPosts = async (
-  pageSize = 2,
+  pageSize = 4,
   lastVisibleDoc = null,
   category?: string
 ) => {

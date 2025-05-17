@@ -19,7 +19,7 @@ export type Post = {
 export const useGetPaginatedPosts = (category?: string) => {
   return useQuery<any>({
     queryKey: ["posts", category],
-    queryFn: () => getPaginatedPosts(2, null, category),
+    queryFn: () => getPaginatedPosts(4, null, category),
   });
 };
 export const useGetLatestPosts = () => {

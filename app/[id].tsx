@@ -137,7 +137,12 @@ const NewsContent = () => {
     if (!post) return { headerImage: null, htmlContent: "", htmlStyles: {} };
     const { processedHtml } = processHTMLContent(post.content);
     const styles = StyleSheet.create({
-      p: { fontSize: 16, lineHeight: 24, color: "#e5e5e5", marginBottom: 16 },
+      p: {
+        fontSize: 16,
+        lineHeight: 24,
+        color: "#e5e5e5",
+        marginBottom: 16,
+      },
       h2: {
         fontSize: 22,
         fontWeight: "bold",
@@ -165,6 +170,7 @@ const NewsContent = () => {
         height: 200,
         marginVertical: 16,
         borderRadius: 8,
+        padding: 28,
       },
       li: { color: "#e5e5e5", marginBottom: 8 },
     });
@@ -250,7 +256,7 @@ const NewsContent = () => {
                       accessibilityLabel={alt || "Article image"}
                     />
                     {alt && (
-                      <Text className="text-sm text-gray-400 mt-1 text-center">
+                      <Text className="text-sm text-gray-400 mt-1 text-center pb-16">
                         {alt}
                       </Text>
                     )}
